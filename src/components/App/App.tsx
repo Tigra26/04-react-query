@@ -1,7 +1,7 @@
 import css from "./App.module.css";
 import { useState, useEffect } from "react";
 import toast, { Toaster } from "react-hot-toast";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData  } from "@tanstack/react-query";
 import SearchBar from "../SearchBar/SearchBar";
 import fetchMovies from "../../services/movieService";
 import type { Movie } from "../../types/movie";
@@ -35,6 +35,7 @@ export default function App() {
 } = useQuery({
   queryKey: ["movies", query, page],
   queryFn: () => fetchMovies(query, page),
+  placeholderData: keepPreviousData,
   enabled: query !== "",
 });
 
@@ -58,6 +59,10 @@ useEffect(() => {
     setSelectedMovie(null);
   };
 
+   const handlePageChange = (selectedPage: number) => {
+    setPage(selectedPage);
+  };
+
   const handleSelectMovie = (movie: Movie) => {
     setSelectedMovie(movie);
   };
@@ -75,7 +80,7 @@ useEffect(() => {
           pageCount={totalPages}
           pageRangeDisplayed={5}
           marginPagesDisplayed={1}
-          onPageChange={({ selected }) => setPage(selected + 1)}
+          onPageChange={({ selected }) => handlePageChange(selected + 1)}
           forcePage={page - 1}
           containerClassName={css.pagination}
           activeClassName={css.active}
