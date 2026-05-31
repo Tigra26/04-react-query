@@ -1,7 +1,7 @@
 import css from "./App.module.css";
 import { useState, useEffect } from "react";
 import toast, { Toaster } from "react-hot-toast";
-import { useQuery, keepPreviousData  } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import SearchBar from "../SearchBar/SearchBar";
 import fetchMovies from "../../services/movieService";
 import type { Movie } from "../../types/movie";
@@ -12,7 +12,6 @@ import MovieModal from "../MovieModal/MovieModal";
 import ReactPaginateModule from "react-paginate";
 import type { ReactPaginateProps } from "react-paginate";
 import type { ComponentType } from "react";
-
 
 type ModuleWithDefault<T> = { default: T };
 
@@ -27,39 +26,33 @@ export default function App() {
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [page, setPage] = useState<number>(1);
 
-  const {
-  data,
-  isLoading,
-  isFetching,
-  isError,
-} = useQuery({
-  queryKey: ["movies", query, page],
-  queryFn: () => fetchMovies(query, page),
-  placeholderData: keepPreviousData,
-  enabled: query !== "",
-});
+  const { data, isLoading, isFetching, isError } = useQuery({
+    queryKey: ["movies", query, page],
+    queryFn: () => fetchMovies(query, page),
+    placeholderData: keepPreviousData,
+    enabled: query !== "",
+  });
 
-const movies = data?.movies ?? [];
-const totalPages = data?.totalPages ?? 0;
+  const movies = data?.movies ?? [];
+  const totalPages = data?.totalPages ?? 0;
 
-useEffect(() => {
-  if (!data || query === "" || isFetching || isError) {
-    return;
-  }
+  useEffect(() => {
+    if (!data || query === "" || isFetching || isError) {
+      return;
+    }
 
-  if (data.movies.length === 0) {
-    toast.error("No movies found for your request.");
-  }
-}, [data, query, isFetching, isError]);
-
+    if (data.movies.length === 0) {
+      toast.error("No movies found for your request.");
+    }
+  }, [data, query, isFetching, isError]);
 
   const handleSearch = (newQuery: string) => {
-   setQuery(newQuery.trim());
+    setQuery(newQuery.trim());
     setPage(1);
     setSelectedMovie(null);
   };
 
-   const handlePageChange = (selectedPage: number) => {
+  const handlePageChange = (selectedPage: number) => {
     setPage(selectedPage);
   };
 
@@ -75,7 +68,9 @@ useEffect(() => {
     <div className={css["app"]}>
       <SearchBar onSubmit={handleSearch} />
       <Toaster position="top-center" />
-       {totalPages > 1 && (
+      {isLoading && <Loader />}
+      {isError && <ErrorMessage />}
+      {totalPages > 1 && (
         <ReactPaginate
           pageCount={totalPages}
           pageRangeDisplayed={5}
@@ -94,8 +89,6 @@ useEffect(() => {
       {selectedMovie !== null && (
         <MovieModal movie={selectedMovie} onClose={closeModal} />
       )}
-      {isLoading && <Loader />}
-      {isError && <ErrorMessage />}
     </div>
   );
 }
